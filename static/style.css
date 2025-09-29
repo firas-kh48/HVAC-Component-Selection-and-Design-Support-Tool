@@ -1,0 +1,108 @@
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: linear-gradient(120deg, #e0eafc 0%, #cfdef3 100%);
+    padding: 0;
+    margin: 0;
+    min-height: 100vh;
+}
+
+.container {
+    max-width: 750px;
+    margin: 40px auto;
+    background: #fff;
+    border-radius: 14px;
+    padding: 32px 28px 28px 28px;
+    box-shadow: 0 8px 24px rgba(44, 62, 80, 0.18);
+}
+
+h1, h2 {
+    color: #234;
+    font-weight: 600;
+    margin-bottom: 18px;
+}
+
+.cable-form label {
+    font-weight: 500;
+    margin-top: 10px;
+}
+.cable-form input[type="number"] {
+    padding: 7px 10px;
+    margin: 6px 0 18px 0;
+    border: 1px solid #b4c5d6;
+    border-radius: 6px;
+    width: 180px;
+    font-size: 1rem;
+}
+.cable-form button {
+    background: #3a7bd5;
+    color: #fff;
+    border: none;
+    padding: 10px 22px;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.cable-form button:hover {
+    background: #28527a;
+}
+
+.result-box {
+    margin-top: 28px;
+    background: #eaf6fb;
+    border-left: 6px solid #3a7bd5;
+    padding: 18px 22px;
+    border-radius: 6px;
+    font-size: 1.1rem;
+}
+
+.btn-main {
+    display: inline-block;
+    margin-top: 22px;
+    padding: 12px 28px;
+    background: #3a7bd5;
+    color: #fff;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 1.1rem;
+    font-weight: 600;
+    transition: background 0.2s;
+}
+.btn-main:hover {
+    background: #28527a;
+}
+
+table {
+    width: 100%;
+    margin-top: 20px;
+    border-collapse: collapse;
+    background: #f9fbfd;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 6px #d3e0ea;
+}
+th, td {
+    text-align: center;
+    padding: 10px 0;
+}
+th {
+    background: #3a7bd5;
+    color: #fff;
+    font-weight: 600;
+}
+tr:nth-child(even) {
+    background: #eaf6fb;
+}
+tr:nth-child(odd) {
+    background: #f9fbfd;
+}
+
+strong {
+    color: #28527a;
+}
+
+.home-page {
+    text-align: center;
+    margin-top: 60px;
+}

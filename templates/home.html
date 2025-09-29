@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    .home-page { max-width: 800px; margin: 0 auto; font-family: 'Segoe UI', Arial, sans-serif; }
+    h1, h2 { text-align: center; }
+    form#compressor-form, .edit-modal-content { background: #f9f9f9; border-radius: 10px; padding: 24px 32px 18px 32px; margin-bottom: 24px; box-shadow: 0 2px 8px #0001; }
+    form#compressor-form label, .edit-modal-content label { display: block; margin-top: 12px; font-weight: 500; }
+    form#compressor-form input, .edit-modal-content input { width: 100%; padding: 8px 10px; margin-top: 4px; border: 1px solid #ccc; border-radius: 6px; margin-bottom: 8px; }
+    .btn-main, form button[type=submit], form button[type=button] { background: #1976d2; color: #fff; border: none; border-radius: 6px; padding: 8px 20px; margin-top: 10px; cursor: pointer; transition: background 0.2s; font-size: 1em; }
+    .btn-main:hover, form button[type=submit]:hover, form button[type=button]:hover { background: #1565c0; }
+    table { border-collapse: collapse; border-radius: 8px; overflow: hidden; background: #fff; }
+    th, td { padding: 10px 14px; text-align: center; }
+    th { background: #e3eafc; }
+    tr:nth-child(even) { background: #f5f8ff; }
+    .main-buttons { display: flex; justify-content: space-between; margin: 32px 0 0 0; gap: 10px; flex-wrap: wrap; }
+    .main-buttons a { flex: 1; text-align: center; margin: 0 4px; }
+    .edit-btn { background: #ffb300; color: #222; }
+    .edit-btn:hover { background: #ffa000; }
+    .delete-btn { background: #e53935; color: #fff; }
+    .delete-btn:hover { background: #b71c1c; }
+    /* Modal styles */
+    .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background: rgba(0,0,0,0.3); }
+    .modal-content { background: #fff; margin: 60px auto; padding: 0; border-radius: 10px; width: 100%; max-width: 450px; box-shadow: 0 4px 32px #0002; }
+    .edit-modal-content { padding: 30px 32px 24px 32px; }
+    .modal-header { padding: 18px 32px 0 32px; font-size: 1.3em; font-weight: 600; }
+    .modal-footer { padding: 10px 32px 18px 32px; text-align: right; }
+    .close { float: right; font-size: 1.2em; font-weight: bold; color: #888; cursor: pointer; }
+    .close:hover { color: #d32f2f; }
+    .component-list { background: #f5f5fa; border-radius: 6px; padding: 12px; margin-bottom: 10px; }
+    .component-list li { text-align: left; }
+</style>
+<div class="home-page">
+    <h1>Component Selection</h1>
+    <div id="compressor-section">
+        <h2>Compressors</h2>
+        <input type="hidden" id="backend_selected_index" value="{{ session.get('selected_index', '') }}">
+        <form id="compressor-form" method="POST" autocomplete="off">
+            <input type="hidden" name="action" id="action" value="">
+            <input type="hidden" name="edit_index" id="edit_index" value="">
+            <label for="comp_name">Compressor Name</label>
+            <input type="text" name="comp_name" id="comp_name" required placeholder="Enter compressor name">
+            <label for="comp_load">Load Current (A)</label>
+            <input type="number" step="any" name="comp_load" id="comp_load" required placeholder="e.g. 15.5">
+            <label for="comp_ambient">Ambient Temp (°C)</label>
+            <input type="number" step="any" name="comp_ambient" id="comp_ambient" required placeholder="e.g. 40">
+            <button type="submit" onclick="setAction('add')">Add Compressor</button>
+            <button type="button" onclick="resetForm()" style="margin-left:8px; background:#aaa;">Clear</button>
+        </form>
+        <br>
+        <table border="1" width="100%" style="margin-bottom:18px;">
+            <thead>
+                <tr>
+                    <th style="width:32px;"></th>
+                    <th>Name</th>
+                    <th>Load (A)</th>
+                    <th>Ambient (°C)</th>
+                    <th>Components</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in compressors %}
+                <tr class="compressor-row" data-index="{{ loop.index0 }}">
+                    <td>
+                        <form method="POST" action="/">
+                            <input type="hidden" name="action" value="select">
+                            <input type="hidden" name="selected_index" value="{{ loop.index0 }}">
+                            <input type="checkbox" class="select-compressor" onclick="this.form.submit();" {% if loop.index0 == session.get('selected_index') %}checked{% endif %}>
+                        </form>
+                    </td>
+                    <td>{{ c.name }}</td>
+                    <td>{{ c.load }}</td>
+                    <td>{{ c.ambient }}</td>
+                    <td>
+                        {% if c.components %}
+                            <ul style="margin:0;padding-left:18px;">
+                                {% for k, v in c.components.items() %}
+                                    <li><b>{{ k }}</b>: {{ v }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <em>Not calculated</em>
+                        {% endif %}
+                    </td>
+                    <td>
+    
+    <button type="button" class="edit-btn" onclick="openEditModal({{ loop.index0 }})">Edit</button>
+    <form method="POST" style="display:inline;">
+        <input type="hidden" name="action" value="delete">
+        <input type="hidden" name="delete_index" value="{{ loop.index0 }}">
+        <button type="submit" class="delete-btn">Delete</button>
+    </form>
+</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+<!-- Edit Modal -->
+<div id="editModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      Edit Compressor <span class="close" onclick="closeEditModal()">&times;</span>
+    </div>
+    <form id="editCompressorForm" class="edit-modal-content" method="POST">
+      <input type="hidden" name="action" value="edit_save">
+      <input type="hidden" name="edit_index" id="modal_edit_index" value="">
+      <label for="modal_comp_name">Compressor Name</label>
+      <input type="text" name="comp_name" id="modal_comp_name" required>
+      <label for="modal_comp_load">Load Current (A)</label>
+      <input type="number" step="any" name="comp_load" id="modal_comp_load" required>
+      <label for="modal_comp_ambient">Ambient Temp (°C)</label>
+      <input type="number" step="any" name="comp_ambient" id="modal_comp_ambient" required>
+      <label>Components</label>
+      <ul id="modal_components" class="component-list"></ul>
+      <div class="modal-footer">
+        <button type="button" onclick="closeEditModal()" style="background:#aaa;">Cancel</button>
+        <button type="submit" class="btn-main">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+    </div>
+    <script>
+// Modal logic
+let compressors = {{ compressors|tojson }};
+
+// Selection logic
+function setSelectedIndex(idx) {
+    localStorage.setItem('selected_compressor_index', idx);
+    updateRowHighlight();
+}
+function getSelectedIndex() {
+    return parseInt(localStorage.getItem('selected_compressor_index'));
+}
+function updateRowHighlight() {
+    document.querySelectorAll('.compressor-row').forEach((row, i) => {
+        const checkbox = row.querySelector('.select-compressor');
+        if (i === getSelectedIndex()) {
+            row.style.background = '#e8f5e9';
+            row.style.border = '2px solid #43a047';
+            checkbox.checked = true;
+        } else {
+            row.style.background = '';
+            row.style.border = '';
+            checkbox.checked = false;
+        }
+    });
+}
+// No localStorage or JS logic for selection needed. All handled by backend.
+// Modal logic
+function openEditModal(idx) {
+    const modal = document.getElementById('editModal');
+    const comp = compressors[idx];
+    document.getElementById('modal_edit_index').value = idx;
+    document.getElementById('modal_comp_name').value = comp.name;
+    document.getElementById('modal_comp_load').value = comp.load;
+    document.getElementById('modal_comp_ambient').value = comp.ambient;
+    // Components
+    const compList = document.getElementById('modal_components');
+    compList.innerHTML = '';
+    if (comp.components) {
+        Object.entries(comp.components).forEach(([k, v]) => {
+            const li = document.createElement('li');
+            li.innerHTML = `<b>${k}</b>: ${v}`;
+            compList.appendChild(li);
+        });
+    } else {
+        compList.innerHTML = '<li><em>Not calculated</em></li>';
+    }
+    modal.style.display = 'block';
+}
+function closeEditModal() {
+    document.getElementById('editModal').style.display = 'none';
+}
+window.onclick = function(event) {
+    const modal = document.getElementById('editModal');
+    if (event.target == modal) modal.style.display = 'none';
+};
+// Main form logic
+function setAction(val) {
+    document.getElementById('action').value = val;
+}
+function resetForm() {
+    document.getElementById('comp_name').value = '';
+    document.getElementById('comp_load').value = '';
+    document.getElementById('comp_ambient').value = '';
+    document.getElementById('edit_index').value = '';
+    document.getElementById('action').value = '';
+}
+</script>
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul style="color:green;">
+        {% for message in messages %}
+          <li>{{ message }}</li>
+        {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+    {% if load_current is not none and ambient_temp is not none %}
+      <div style="margin-bottom:18px;">
+        <strong>Current Input:</strong> {{ load_current }} A, {{ ambient_temp }} °C
+      </div>
+    {% endif %}
+    <div class="main-buttons">
+        <a href="{{ url_for('cable_selection') }}" class="btn-main">Cable Selection</a>
+        <a href="{{ url_for('contactor_selection') }}" class="btn-main">Contactor Selection</a>
+        <a href="{{ url_for('circuit_breaker_selection') }}" class="btn-main">Circuit Breaker Selection</a>
+        <a href="{{ url_for('vfd_selection') }}" class="btn-main">VFD Selection</a>
+        <a href="{{ url_for('mms_selection') }}" class="btn-main">Manual Motor Starter Selection</a>
+    </div>
+    {% if load_current is not none and ambient_temp is not none %}
+      <div style="text-align:center; margin-top:22px;">
+        <a href="{{ url_for('download_csv') }}" class="btn-main" style="background:#43a047;">Download CSV</a>
+      </div>
+    {% endif %}
+</div>
+{% endblock %}

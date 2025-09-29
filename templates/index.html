@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Wire Inventory Management System</h1>
+
+{% if message %}
+<p><strong>{{ message }}</strong></p>
+{% endif %}
+
+<form method="POST" action="{{ url_for('inventory') }}">
+    <label>Select Wire Type:</label><br>
+    {% for wire in wire_types %}
+        <input type="radio" name="wire_type" value="{{ wire }}"> {{ wire }}
+    {% endfor %}
+    <br><br>
+
+    <label>Select Wire Length (2-20 meters):</label>
+    <select name="length">
+        {% for length in lengths %}
+        <option value="{{length}}">{{length}} meters</option>
+        {% endfor %}
+    </select>
+    <br><br>
+
+    <button name="action" value="add">Add to Inventory</button>
+    <button name="action" value="remove">Remove from Inventory</button>
+    <button name="action" value="search">Search Available Lengths</button>
+</form>
+
+{% if search_results is not none %}
+    <h2>Search Results</h2>
+    {% if search_results %}
+        <table border="1" cellpadding="5">
+            <tr>
+                <th>Wire Type</th>
+                <th>Length (m)</th>
+                <th>Quantity</th>
+                <th>Reference</th>
+            </tr>
+            {% for ref, data in search_results.items() %}
+            <tr>
+                <td>{{ data['type'] }}</td>
+                <td>{{ data['length'] }}</td>
+                <td>{{ data['quantity'] }}</td>
+                <td>{{ data['reference'] }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p>No wires of selected type available.</p>
+    {% endif %}
+{% endif %}
+
+<h2>Current Inventory</h2>
+{% if inventory %}
+    <table border="1" cellpadding="5">
+        <tr>
+            <th>Wire Type</th>
+            <th>Length (m)</th>
+            <th>Quantity</th>
+            <th>Reference</th>
+        </tr>
+        {% for ref, data in inventory.items() %}
+        <tr>
+            <td>{{ data['type'] }}</td>
+            <td>{{ data['length'] }}</td>
+            <td>{{ data['quantity'] }}</td>
+            <td>{{ data['reference'] }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+{% else %}
+    <p>No items in inventory.</p>
+{% endif %}
+{% endblock %}

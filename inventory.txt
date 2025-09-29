@@ -1,0 +1,3 @@
+Shielded4,9,2,SH4-9
+Shielded6,14,1,SH6-14
+Shielded3,8,1,SH3-8

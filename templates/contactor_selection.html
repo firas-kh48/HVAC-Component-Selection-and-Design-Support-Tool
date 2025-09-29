@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+<a href="/" class="btn-main" style="margin-bottom:18px;">Return to Main Screen</a>
+<h1>Contactor Selection</h1>
+{% if selected_compressor %}
+  <div style="background:#e3f2fd; border-radius:8px; padding:16px; margin-bottom:18px;">
+    <b>Selected Compressor:</b> {{ selected_compressor.name }}<br>
+    <b>Load:</b> {{ selected_compressor.load }} A<br>
+    <b>Ambient:</b> {{ selected_compressor.ambient }} °C<br>
+  </div>
+{% endif %}
+{% if load_current is not none %}
+  <div style="margin-bottom:18px;">
+    <strong>Current Input:</strong> {{ load_current }} A
+  </div>
+{% endif %}
+{% if min_contactor_amp is not none %}
+    <div class="result-box">
+        <h2>Result</h2>
+        <p><strong>Your Input:</strong><br>
+        Load Current: {{ load_current }} A</p>
+        <p>Minimum Contactor Ampacity: <strong>{{ min_contactor_amp|round(2) }} A</strong></p>
+        {% if selected_contactor %}
+            <p>Recommended Contactor: <strong>{{ selected_contactor }} A</strong></p>
+        {% else %}
+            <p><strong>No standard contactor size found for this ampacity.</strong></p>
+        {% endif %}
+    </div>
+{% endif %}
+<h2>Contactor Selections Table</h2>
+<table>
+    <tr><th>Ampacity (A)</th></tr>
+    {% for amp in contactor_table %}
+    <tr{% if selected_contactor and amp == selected_contactor %} style="background:#c3e6cb;font-weight:bold;"{% endif %}>
+        <td>{{ amp }}</td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}
